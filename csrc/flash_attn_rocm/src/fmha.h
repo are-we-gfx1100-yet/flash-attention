@@ -17,7 +17,7 @@
 #include <c10/hip/HIPGuard.h>
 #include <c10/core/DeviceType.h>
 
-#include "fmha_utils.h"
+#include "fmha_utils.gfx1100.h"
 
 constexpr int TOTAL_DIM = 0;
 constexpr int H_DIM = 1;
