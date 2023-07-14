@@ -232,7 +232,7 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
     //         MaskingSpec,
     //         nondeterministic>;                       // MaskingSpecialization
     
-    using DeviceGemmInstance1 = ck::tensor_operation::device::DeviceBatchedGemmSoftmaxGemmPermute_Wmma_CShuffle<
+    using DeviceGemmInstance1 = ck::tensor_operation::device::DeviceGroupedGemmSoftmaxGemmPermute_Wmma_CShuffle<
         NumDimG, NumDimM, NumDimN, NumDimK, NumDimO,
         ADataType, B0DataType, B1DataType, CDataType, Acc0BiasDataType, Acc0DataType, Acc1BiasDataType, Acc1DataType, CShuffleDataType,
         AElementOp, B0ElementOp, Acc0ElementOp, B1ElementOp, CElementOp,
@@ -255,7 +255,7 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
         1, 1, S<1, 128, 1, 2>, 8,             
         MaskingSpec>;
 
-    using DeviceGemmInstance2 = ck::tensor_operation::device::DeviceBatchedGemmSoftmaxGemmPermute_Wmma_CShuffle<
+    using DeviceGemmInstance2 = ck::tensor_operation::device::DeviceGroupedGemmSoftmaxGemmPermute_Wmma_CShuffle<
         NumDimG, NumDimM, NumDimN, NumDimK, NumDimO,
         ADataType, B0DataType, B1DataType, CDataType, Acc0BiasDataType, Acc0DataType, Acc1BiasDataType, Acc1DataType, CShuffleDataType,
         AElementOp, B0ElementOp, Acc0ElementOp, B1ElementOp, CElementOp,
@@ -367,15 +367,15 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
                                   b1_gs_os_ns_lengths,
                                   b1_gs_os_ns_strides,
                                   c_gs_ms_os_lengths,
-                                  c_gs_ms_os_strides,
-                                  z_gs_ms_ns_lengths,
-                                  z_gs_ms_ns_strides,
-                                  lse_gs_ms_lengths,
-                                  lse_gs_ms_strides,
-                                  {},   // acc0_biases_gs_ms_ns_lengths
-                                  {},   // acc0_biases_gs_ms_ns_strides
-                                  {},   // acc1_biases_gs_ms_os_lengths
-                                  {}}); // acc1_biases_gs_ms_os_strides
+                                  c_gs_ms_os_strides});
+                                //   z_gs_ms_ns_lengths,
+                                //   z_gs_ms_ns_strides,
+                                //   lse_gs_ms_lengths,
+                                //   lse_gs_ms_strides,
+                                //   {},   // acc0_biases_gs_ms_ns_lengths
+                                //   {},   // acc0_biases_gs_ms_ns_strides
+                                //   {},   // acc1_biases_gs_ms_os_lengths
+                                //   {}}); // acc1_biases_gs_ms_os_strides
                                   
       }
 
@@ -386,8 +386,8 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
                                         p_b0,
                                         p_b1,
                                         p_c,
-                                        p_z,
-                                        p_lse,
+                                        // p_z,
+                                        // p_lse,
                                         {},
                                         {},
                                         problem_descs,
@@ -395,9 +395,9 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
                                         b0_element_op,
                                         acc0_element_op,
                                         b1_element_op,
-                                        c_element_op,
-                                        dropout_ratio,
-                                        seeds);
+                                        c_element_op);
+                                        // dropout_ratio,
+                                        // seeds);
 
       // specify workspace for problem_desc
       SimpleDeviceMem problem_desc_workspace(gemm.GetWorkSpaceSize(&argument));
@@ -483,15 +483,15 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
                                   b1_gs_os_ns_lengths,
                                   b1_gs_os_ns_strides,
                                   c_gs_ms_os_lengths,
-                                  c_gs_ms_os_strides,
-                                  z_gs_ms_ns_lengths,
-                                  z_gs_ms_ns_strides,
-                                  lse_gs_ms_lengths,
-                                  lse_gs_ms_strides,
-                                  {},   // acc0_biases_gs_ms_ns_lengths
-                                  {},   // acc0_biases_gs_ms_ns_strides
-                                  {},   // acc1_biases_gs_ms_os_lengths
-                                  {}}); // acc1_biases_gs_ms_os_strides
+                                  c_gs_ms_os_strides});
+                                //   z_gs_ms_ns_lengths,
+                                //   z_gs_ms_ns_strides,
+                                //   lse_gs_ms_lengths,
+                                //   lse_gs_ms_strides,
+                                //   {},   // acc0_biases_gs_ms_ns_lengths
+                                //   {},   // acc0_biases_gs_ms_ns_strides
+                                //   {},   // acc1_biases_gs_ms_os_lengths
+                                //   {}}); // acc1_biases_gs_ms_os_strides
                                   
       }
       // do GEMM
@@ -501,8 +501,8 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
                                         p_b0,
                                         p_b1,
                                         p_c,
-                                        p_z,
-                                        p_lse,
+                                        // p_z,
+                                        // p_lse,
                                         {},
                                         {},
                                         problem_descs,
@@ -510,9 +510,9 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
                                         b0_element_op,
                                         acc0_element_op,
                                         b1_element_op,
-                                        c_element_op,
-                                        dropout_ratio,
-                                        seeds);
+                                        c_element_op);
+                                        // dropout_ratio,
+                                        // seeds);
 
       // specify workspace for problem_desc
       SimpleDeviceMem problem_desc_workspace(gemm.GetWorkSpaceSize(&argument));
@@ -548,7 +548,7 @@ void run_fmha_fp16_bf16_gfx90a(LaunchParams<FmhaFpropParams> &launch_params) {
     FP16_SWITCH(launch_params.params.is_bf16, [&] {
         if(launch_params.params.is_causal){
             if(launch_params.params.d <= 32){
-                run_fmha_fp16_bf16_gfx90a_loop_<elem_type,  128, 128, 32, 32, 32,
+                run_fmha_fp16_bf16_gfx1100_loop_<elem_type,  128, 128, 32, 32, 32,
                                                             32,  32,  4,  1, 
                                                             S<4, 64, 1>, true, S<4, 64, 1>, true,
                                                             S<16, 16, 1>, 2, 
@@ -556,7 +556,7 @@ void run_fmha_fp16_bf16_gfx90a(LaunchParams<FmhaFpropParams> &launch_params) {
                                                             MaskingSpec_causal>(launch_params);
             }
             else if(launch_params.params.d <= 64){
-                run_fmha_fp16_bf16_gfx90a_loop_<elem_type,  128, 128, 32, 64, 32,
+                run_fmha_fp16_bf16_gfx1100_loop_<elem_type,  128, 128, 32, 64, 32,
                                                             32,  32,  4,  2,
                                                             S<4, 64, 1>, true, S<4, 64, 1>, true,
                                                             S<16, 16, 1>, 4, 
@@ -564,7 +564,7 @@ void run_fmha_fp16_bf16_gfx90a(LaunchParams<FmhaFpropParams> &launch_params) {
                                                             MaskingSpec_causal>(launch_params);
             }
             else if(launch_params.params.d <= 128){
-                run_fmha_fp16_bf16_gfx90a_loop_<elem_type,  128, 128, 32, 128, 32,
+                run_fmha_fp16_bf16_gfx1100_loop_<elem_type,  128, 128, 32, 128, 32,
                                                             32,  32,  4,  4, 
                                                             S<4, 64, 1>, true, S<4, 64, 1>, true,
                                                             S<8, 32, 1>, 4, 
@@ -575,7 +575,7 @@ void run_fmha_fp16_bf16_gfx90a(LaunchParams<FmhaFpropParams> &launch_params) {
         }
         else{
             if(launch_params.params.d <= 32){
-                run_fmha_fp16_bf16_gfx90a_loop_<elem_type,  128, 128, 32, 32, 32,
+                run_fmha_fp16_bf16_gfx1100_loop_<elem_type,  128, 128, 32, 32, 32,
                                                             32,  32,  4,  1, 
                                                             S<4, 64, 1>, true, S<4, 64, 1>, true,
                                                             S<16, 16, 1>, 2, 
@@ -583,7 +583,7 @@ void run_fmha_fp16_bf16_gfx90a(LaunchParams<FmhaFpropParams> &launch_params) {
                                                             MaskingSpec_default>(launch_params);
             }
             else if(launch_params.params.d <= 64){
-                run_fmha_fp16_bf16_gfx90a_loop_<elem_type,  128, 128, 32, 64, 32,
+                run_fmha_fp16_bf16_gfx1100_loop_<elem_type,  128, 128, 32, 64, 32,
                                                             32,  32,  4,  2, 
                                                             S<4, 64, 1>, true, S<4, 64, 1>, true,
                                                             S<16, 16, 1>, 4, 
@@ -591,7 +591,7 @@ void run_fmha_fp16_bf16_gfx90a(LaunchParams<FmhaFpropParams> &launch_params) {
                                                             MaskingSpec_default>(launch_params);
             }
             else if(launch_params.params.d <= 128){
-                run_fmha_fp16_bf16_gfx90a_loop_<elem_type,  128, 128, 32, 128, 32,
+                run_fmha_fp16_bf16_gfx1100_loop_<elem_type,  128, 128, 32, 128, 32,
                                                             32,  32,  4,  4, 
                                                             S<4, 64, 1>, true, S<4, 64, 1>, true,
                                                             S<8, 32, 1>, 4, 

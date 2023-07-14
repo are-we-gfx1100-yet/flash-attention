@@ -38,9 +38,11 @@ def attention_ref(qkv, attn_mask, dropout_p, upcast=False, causal=False):
 
 torch.manual_seed(0)
 repeats = 250
+# batch_size = [1,32,64,128]
 batch_size = [1,32,64,128]
 nheads = 16
-seqlen = [1024,2048,4096]
+# seqlen = [1024,2048,4096]
+seqlen = [1024]
 n = 1024
 d = n // nheads
 dropout_p = 0.1
