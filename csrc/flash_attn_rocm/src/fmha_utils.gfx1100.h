@@ -80,16 +80,16 @@ enum DataType {kFloat16, kFloat32, kBFloat16, kInt32, kInt8};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static inline size_t get_size_in_bytes( size_t n, auto dtype ) {
-    if(dtype == torch::kFloat32){
+static inline size_t get_size_in_bytes( size_t n, DataType dtype ) {
+    if(dtype == DataType::kFloat32){
         return n * 4;
-    }else if(dtype == torch::kBFloat16){
+    }else if(dtype == DataType::kBFloat16){
         return n * 2;
-    }else if(dtype == torch::kFloat16){
+    }else if(dtype == DataType::kFloat16){
         return n * 2;
-    }else if(dtype == torch::kInt32){
+    }else if(dtype == DataType::kInt32){
         return n * 4;
-    }else if(dtype == torch::kInt8){
+    }else if(dtype == DataType::kInt8){
         return n;
     }
     return 0;
