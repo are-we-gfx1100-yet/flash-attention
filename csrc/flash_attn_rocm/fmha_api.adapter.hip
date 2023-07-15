@@ -6,9 +6,9 @@
 // 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifdef USE_FLASH_ATTENTION_ROCM
+// #ifdef USE_FLASH_ATTENTION_ROCM
 
-#include "fmha.h"
+#include "src/fmha.h"
 
 #define CHECK_SHAPE(x, ...) TORCH_CHECK(x.sizes() == torch::IntArrayRef({__VA_ARGS__}), #x " must have shape (" #__VA_ARGS__ ")")
 
@@ -284,10 +284,10 @@ mha_fwd(const at::Tensor &q,
         const float softmax_scale,
         const bool zero_tensors,
         const bool is_causal,
-        const bool is_deterministic,
-        const bool return_softmax, // in rocm ,this will return the random number matrix when doing dropout
-        const int num_splits,      // num_splits is not used in rocm
-        c10::optional<at::Generator> gen_) {
+        const bool return_softmax,
+        const int num_splits) {
+    int is_deterministic = 1;
+
     auto dprops = at::cuda::getCurrentDeviceProperties();
     auto stream = at::cuda::getCurrentHIPStream().stream();
     bool is_dropout = p_dropout > 0.0;
@@ -354,8 +354,7 @@ mha_fwd(const at::Tensor &q,
         if (return_softmax) { s.zero_(); }
     }
 
-    auto gen = at::get_generator_or_default<at::CUDAGeneratorImpl>(
-        gen_, at::cuda::detail::getDefaultCUDAGenerator());
+    auto gen = at::get_generator_or_default<at::CUDAGeneratorImpl>(c10::nullopt, at::cuda::detail::getDefaultCUDAGenerator());
 
     set_params_fprop(launch_params.params,
                      batch_size,
@@ -418,11 +417,13 @@ mha_bwd(const at::Tensor &dout,  // total_q x num_heads, x head_size
         const float softmax_scale,
         const bool zero_tensors,
         const bool is_causal,
-        const bool is_deterministic,
-        const bool is_performance_mode,
         const int num_splits,
-        c10::optional<at::Generator> gen_
+        at::Tensor philox_seed,
+        at::Tensor philox_offset
 ) {
+    int is_deterministic = 1;
+    int is_performance_mode = 0;
+
     auto dprops = at::cuda::getCurrentDeviceProperties();
 
     bool is_dropout = p_dropout > 0.0;
@@ -502,8 +503,7 @@ mha_bwd(const at::Tensor &dout,  // total_q x num_heads, x head_size
         // softmax_d.zero_();
     }
     
-    auto gen = at::get_generator_or_default<at::CUDAGeneratorImpl>(
-        gen_, at::cuda::detail::getDefaultCUDAGenerator());
+    auto gen = at::get_generator_or_default<at::CUDAGeneratorImpl>(c10::nullopt, at::cuda::detail::getDefaultCUDAGenerator());
 
     if(!is_performance_mode){
         at::Tensor dq_tmp = at::empty(dq.sizes(), dq.options().dtype(at::kFloat)).contiguous();
@@ -594,4 +594,4 @@ mha_bwd(const at::Tensor &dout,  // total_q x num_heads, x head_size
 
 } // namespace pytorch_fmha
 
-#endif
+// #endif
