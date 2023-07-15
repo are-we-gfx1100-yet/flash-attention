@@ -271,7 +271,7 @@ void set_params_dgrad(FmhaDgradParams &params,
     params.is_performance_mode = is_performance_mode;
 }
 
-std::vector<at::Tensor>
+std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor>
 mha_fwd(const at::Tensor &q,
         const at::Tensor &k,
         const at::Tensor &v,
@@ -390,16 +390,16 @@ mha_fwd(const at::Tensor &q,
 
     run_fmha_fp16_bf16_gfx90a(launch_params);
 
-    std::vector<at::Tensor> result = {softmax_lse};
+    // TODO EVS: dropout isn't implemented for now
+    auto seed_t = at::empty({}, at::dtype(at::kLong));
+    auto offset_t = at::empty({}, at::dtype(at::kLong));
 
-    if (return_softmax) {
-        result.push_back(s);
-    }
-    return result;
+    // s -> flash_softmax
+    return {softmax_lse, seed_t, offset_t, s};
 }
 
 
-std::vector<at::Tensor>
+std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor>
 mha_bwd(const at::Tensor &dout,  // total_q x num_heads, x head_size
         const at::Tensor &q,   // total_q x num_heads x head_size, total_q := \sum_{i=0}^{b} s_i
         const at::Tensor &k,   // total_k x num_heads x head_size, total_k := \sum_{i=0}^{b} s_i
