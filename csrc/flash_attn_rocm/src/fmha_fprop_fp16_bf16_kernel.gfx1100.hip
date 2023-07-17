@@ -36,6 +36,7 @@ struct SimpleDeviceMem
     void* p_mem_;
 };
 
+// TODO EVS: most template arguments are ignored until we figure out the best presets
 template<typename InputType, 
          ck::index_t MPerBlock,    ck::index_t NPerBlock, ck::index_t KPerBlock,   ck::index_t Gemm1NPerBlock, ck::index_t Gemm1KPerBlock,
          ck::index_t MPerXDL,      ck::index_t NPerXDL,   ck::index_t NXdlPerWave, ck::index_t Gemm1NXdlPerWave,
@@ -234,48 +235,48 @@ void run_fmha_fp16_bf16_gfx1100_loop_(LaunchParams<FmhaFpropParams> &launch_para
     
     using DeviceGemmInstance1 = ck::tensor_operation::device::DeviceGroupedGemmSoftmaxGemmPermute_Wmma_CShuffle<
         NumDimG, NumDimM, NumDimN, NumDimK, NumDimO,
-        ADataType, B0DataType, B1DataType, CDataType, Acc0BiasDataType, Acc0DataType, Acc1BiasDataType, Acc1DataType, CShuffleDataType,
+        ADataType, B0DataType, B1DataType, CDataType, Acc0BiasDataType, AccDataType, Acc1BiasDataType, AccDataType, CShuffleDataType,
         AElementOp, B0ElementOp, Acc0ElementOp, B1ElementOp, CElementOp,
         GemmSpec, TensorSpecA, TensorSpecB0, TensorSpecB1, TensorSpecC, 1,
-        256,
+        64,
         //      Gemm 0
-        128, 128, 64, 8, 8,   
+        32, 64, 64, 8, 8,
         //      Gemm 1
-                64, 64, 8,  
+            64, 64, 8,  
         16, 16, 16, 
         // Per repeat = wave_m = wave_num, wave_n = 1
-        1, 8, 4,
+        1, 4, 4,
         // ABlockTransfer MK -> K0 M K1
-        S<2, 128, 1>, S<1, 0, 2>, S<1, 0, 2>, 2, 8, 8, true,
+        S<2, 32, 1>, S<1, 0, 2>, S<1, 0, 2>, 2, 8, 8, true,
         // B0BlockTransfer LK -> K0 L K1
-        S<8,  32, 1>, S<1, 0, 2>, S<1, 0, 2>, 2, 8, 8, true,
+        S<4, 16, 1>, S<1, 0, 2>, S<1, 0, 2>, 2, 8, 8, true,
         // B1BlockTransfer NL -> L0 N L1
-        S<2,  16, 8>, S<0, 2, 1>, S<0, 2, 1>, 1, 1, 1, false,
+        S<2, 4, 8>, S<0, 2, 1>, S<0, 2, 1>, 1, 4, 1, false,
         // CShuffleBlockTransfer MN
-        1, 1, S<1, 128, 1, 2>, 8,             
+        1, 1, S<1, 32, 1, 2>, 8,             
         MaskingSpec>;
 
     using DeviceGemmInstance2 = ck::tensor_operation::device::DeviceGroupedGemmSoftmaxGemmPermute_Wmma_CShuffle<
         NumDimG, NumDimM, NumDimN, NumDimK, NumDimO,
-        ADataType, B0DataType, B1DataType, CDataType, Acc0BiasDataType, Acc0DataType, Acc1BiasDataType, Acc1DataType, CShuffleDataType,
+        ADataType, B0DataType, B1DataType, CDataType, Acc0BiasDataType, AccDataType, Acc1BiasDataType, AccDataType, CShuffleDataType,
         AElementOp, B0ElementOp, Acc0ElementOp, B1ElementOp, CElementOp,
         GemmSpec, TensorSpecA, TensorSpecB0, TensorSpecB1, TensorSpecC, 1,
-        256,
+        64,
         //      Gemm 0
-        128, 128, 64, 8, 8,   
+        32, 64, 64, 8, 8,
         //      Gemm 1
-                64, 64, 8,  
+            64, 64, 8,  
         16, 16, 16, 
         // Per repeat = wave_m = wave_num, wave_n = 1
-        1, 8, 4,
+        1, 4, 4,
         // ABlockTransfer MK -> K0 M K1
-        S<2, 128, 1>, S<1, 0, 2>, S<1, 0, 2>, 2, 8, 8, true,
+        S<2, 32, 1>, S<1, 0, 2>, S<1, 0, 2>, 2, 8, 8, true,
         // B0BlockTransfer LK -> K0 L K1
-        S<8,  32, 1>, S<1, 0, 2>, S<1, 0, 2>, 2, 8, 8, true,
+        S<4, 16, 1>, S<1, 0, 2>, S<1, 0, 2>, 2, 8, 8, true,
         // B1BlockTransfer NL -> L0 N L1
-        S<2,  16, 8>, S<0, 2, 1>, S<0, 2, 1>, 1, 1, 1, false,
+        S<2, 4, 8>, S<0, 2, 1>, S<0, 2, 1>, 1, 4, 1, false,
         // CShuffleBlockTransfer MN
-        1, 1, S<1, 128, 1, 2>, 8,             
+        1, 1, S<1, 32, 1, 2>, 8,             
         MaskingSpec>;
 
     bool time_kernel    = false;
